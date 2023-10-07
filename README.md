@@ -7,7 +7,11 @@
 
 ### Why AWS?
 
-* **Scalability:** AWS provides elastic scaling capabilities, allowing you to easily scale resources up or down to handle varying workloads. This is crucial for a microservices architecture that requires dynamic scaling based on demand. (This is provided in almost all the cloud service providers)
+* Easy to use
+* Reliable
+* Community adoption
+* wide range of services that it provides.
+* Scalability
 
 * **Architecture**
 ![Architecture Diagram](images/aws.png)
@@ -271,17 +275,27 @@ Please refer to `code_samples/terraform/eks.tf` for code sample.
 4.Namespaces:
 
 * Organize microservices using Kubernetes namespaces for isolation and resource management.
+
 5.Secrets Management
+
 * Store sensitive information like API keys, database credentials, and environment-specific configuration in Kubernetes secrets.
+
 6.Helm Charts (Optional)
+
 * Create Helm charts for your microservices to simplify deployment, configuration, and scaling.
 * Helm allows you to templatize Kubernetes manifest files and manage releases.
+
 7.Scaling
+
 * Configure Horizontal Pod Autoscaling (HPA) based on metrics like CPU and memory usage to scale your microservices dynamically.
+
 8.Rolling Updates and Rollbacks:
+
 * Implement rolling updates to deploy new versions of your microservices without downtime.
 * Have a rollback strategy in place in case of issues with a new release. (This depends on the rollingUpdate parameters (maxUnavailable specifically) that you have specified. Kubernetes by default sets the value to 25%.)
+
 9.Security:
+
 * Follow security best practices, such as RBAC (Role-Based Access Control), PodSecurityPolicies, and network policies, to secure the cluster.
 * Regularly apply security updates and patches to the container images and Kubernetes components.
 
@@ -344,9 +358,9 @@ Replicate the same setup in failover region.
 
 * Configuration Drift Detection: Detect and rectify any configuration changes that deviate from the expected state.
 
-9.Disaster Preparedness Testing:
+9.Disaster Recovery Testing:
 
-* Disaster Simulation: Conduct drills to prepare for real disasters, like AZ/region outages.
+* Disaster Simulation: Conduct drills to prepare for real disasters, like AZ/region outages and verify if the strategy in place works.
 
 ## Monitoring Approach
 
@@ -363,6 +377,16 @@ Replicate the same setup in failover region.
 * Visualize and Monitor:
   * Use Grafana to create dashboards that visualize the data collected by Prometheus. Monitor the health and performance of the Kubernetes cluster, applications, and services through these dashboards.
   * Configure alerting within Grafana to receive notifications when predefined alerting rules are triggered.
+
+## Configuration Management
+
+The proposed solution doesn't require a configuration management tool.
+
+## Single point of Failures
+
+* Route53
+* Global accelerator
+* Even though the RDS instance is spanned to multi AZ and has a read replica in fail over zone, because of the limitation of Postgres RDS, application cannot write during primary region failure.
 
 ## References
 * [AWS RDS](https://docs.aws.amazon.com/rds/)
