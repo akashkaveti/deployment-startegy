@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generic-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: generic-app
+  template:
+    metadata:
+      labels:
+        app: generic-app
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - <LABEL>
+              topologyKey: "topology.kubernetes.io/zone"
+      containers:
+        - name: {{ .Values.containerName }}
+          image: {{ .Values.imageName }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          resources:
+            requests:
+              memory: {{ .Values.memoryRequest }}
+              cpu: {{ .Values.cpuRequest }}
+            limits:
+              memory: {{ .Values.memoryLimit }}
+              cpu: {{ .Values.cpuLimit }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbePath }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.livenessProbeInitialDelay }}
+            periodSeconds: {{ .Values.livenessProbePeriod }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbePath }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readinessProbeInitialDelay }}
+            periodSeconds: {{ .Values.readinessProbePeriod }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: {{ .Values.securityContextUser }}
+            readOnlyRootFilesystem: {{ .Values.securityContextReadOnlyRoot }}
+          lifecycle:
+            preStop:
+              exec:
+                command: {{ .Values.preStopCommand }}
