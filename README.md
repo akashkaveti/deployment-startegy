@@ -18,7 +18,7 @@
 
 * In a declarative system, you declare the desired state, and the system observes the current and desired state and determines the actions required to reach the desired state from the current state.
 
-* Kubernetes’ declarative system makes it easier for you to set up applications and let Kubernetes manage the system state. This allows you to use GitOps tools like Flux and ArgoCD that let you control multiple Kubernetes clusters using a single source of truth.
+* Kubernetes makes it easier for you to set up applications and let Kubernetes manage the system state. This allows you to use GitOps tools like Flux and ArgoCD that let you control multiple Kubernetes clusters using a single source of truth.
 
 * These tools help you minimize configuration drift, an issue to which most concurrent deployments are vulnerable. It provides extended deployment and scaling capabilities, and automatically manages containerized applications.
 
@@ -32,7 +32,7 @@ Infrastructure automation is divided into two layers.
   * Underlying infrastructure - in this case AWS resources which are required for Kubernetes to run.
 
 * Layer -2
-  * Applications running on kubernetes which helps us to make the microservices more secure and easily reachable. 
+  * Applications running on kubernetes which helps us to make the microservices more secure and easily reachable.
 
 ### Layer -1, AWS
 
@@ -40,19 +40,19 @@ Infrastructure automation is divided into two layers.
 * IaC is added under `code_samples/terraform`
 * The code blocks are divided into different files. Each file represents a component inside the layer.
 
-
 #### VPC and networks
 
-* As the initial step, a `VPC` will be created with a the different types of subnets, one is `Public` and another one is `Private`.
+* To initiate infrastructure setup, begin by creating a Virtual Private Cloud (VPC) with distinct subnets, comprising a `Public` subnet and a `Private` subnet.
 
-  * For the creation of VPC, We can make use of the existing VPC modules which are available in Terraform registry. 
+* To facilitate the creation of this VPC, we will leverage pre-existing VPC modules readily accessible in the Terraform registry. the chosen IP range for this VPC is `10.0.0.0/16`.
 
-  * We can use 10.0.0.0/16 for this purpose.
-  * the division of subnet will look like this, We have to make sure that private subnets gets the majority number of IP addresses so that we can schedule the workloads properly.
+Subnet allocation will adhere to the following principles:
 
-  * Public subnets can have minimum number of IP addresses available for them.
+* Prioritizing the 'Private' subnets with a substantial share of available IP addresses to effectively manage future workload deployments.
+* Allocating a minimal number of IP addresses to the 'Public' subnets, ensuring efficient resource utilization.
+* Reserving the remaining IP addresses for potential future expansion and development needs.
 
-  * The rest of the available can be used for future developments.
+* This approach ensures an optimal allocation of resources within VPC, promoting scalability and efficient management of the infrastructure
 
 The division and number of hosts available for each subnet is available [here](https://www.davidc.net/sites/default/subnets/subnets.html?network=10.0.0.0&mask=16&division=15.f901). 
 
@@ -66,13 +66,17 @@ The division and number of hosts available for each subnet is available [here](h
   Public Subnet - C 10.0.16.0/21
   ```
 
+* Create another VPC in a different region, this VPC will works as failover VPC for the workloads.
+* Please make sure that VPC CIDR is different from the primary VPC.
+* VPC Peering: We need to establish network connectivity between the source and target regions
+
 #### Postgres Instance
 
 * Amazon RDS PostgreSQL Primary Instance: The primary database instance running in the source region in the same VPC that was created earlier.
 
 * Multi-AZ Deployment: Enabled for the primary instance to ensure high availability within the source region.
 * Cross-Region Read Replica: A read-only replica of the primary database created in a different AWS region to provide disaster recovery and read-scalability.
-* VPC Peering: We need to establish network connectivity between the source and target regions.
+.
 * Security Groups and Network ACLs: Security groups and network ACLs are configured to control inbound and outbound traffic to the RDS instances
 
 ##### Considerations
@@ -99,8 +103,6 @@ The division and number of hosts available for each subnet is available [here](h
 
 * Implement a strong password policy and manage database credentials securely.
 
-* Regularly monitor and apply security patches and updates for PostgreSQL.
-
 * Implement AWS CloudWatch alarms and monitoring to detect and respond to security events.
 
 Please refer to `code_samples/terraform/rds.tf` for code sample.
@@ -123,7 +125,7 @@ Considerations:
 
 Considerations:
 
-* With Amazon EKS managed node groups, you don't need to separately provision or register the Amazon EC2 instances that provide compute capacity to run your Kubernetes applications. You can create, automatically update, or terminate nodes for your cluster with a single operation. Node updates and terminations automatically drain nodes to ensure that your applications stay available.
+* With Amazon EKS managed node groups, you don't need to separately provision or register the Amazon EC2 instances that provide compute capacity to run the Kubernetes applications. You can create, automatically update, or terminate nodes for your cluster with a single operation. Node updates and terminations automatically drain nodes to ensure that your applications stay available.
 
 * Kubernetes Horizontal Pod Autoscaling (HPA): Configure Kubernetes HPA to automatically scale the number of pods in response to CPU or custom metrics.
 
@@ -166,6 +168,8 @@ Considerations:
 
 * Use the cluster add-ons that are available with EKS which installs kube-proxy, CNI and DNS on the cluster.
 
+* Enable OIDC Provider for EKS and use the OIDC provider connect URL for IRSA.
+
 4.3. Managed Node Groups Configuration
 
 Considerations:
@@ -176,21 +180,23 @@ Considerations:
 
 * AMI Selection: Choose an appropriate Amazon Machine Image (AMI) for worker nodes, considering performance and security patches.
 
+* Incase of any custom packages installation, you can make use the userdata that can be passed to the nodes. 
+
 * Private Subnets for Worker Nodes: Place worker nodes in private subnets to prevent direct external access and rely on NAT gateways or instances for outbound internet access.
 
 4.4. Security Groups and Network ACLs
 
 Considerations:
 
-* Security Group Rules: Define security group rules to restrict inbound and outbound traffic to worker nodes based on application requirements.
-
 * Network ACLs: Configure network ACLs at the subnet level to provide an additional layer of security.
+* Security Group Rules: Restrict inbound and outbound traffic to worker nodes based on application requirements.
+* By default the access is limited to EKS Controlplane <-> Worker nodes, Open the ports depending on the requirement of the applications. 
 
 4.5. IAM Roles and Policies
 
 Considerations:
 
-* Worker Node IAM Role: Create an IAM role for worker nodes with policies that grant access to required AWS services.
+* Worker Node IAM Role: Assign IAM roles for worker nodes, follow the least privilege mechanism to the policies that are attached to the IAM roles.
 
 * IRSA: Implement IAM Roles for Service Accounts (IRSA) to manage pod-level permissions within the cluster.
 
@@ -206,7 +212,7 @@ Please refer to `code_samples/terraform/eks.tf` for code sample.
 
 ### Make Kubernetes cluster ready for application deployment
 
-* Install AWS Load balancer controller. This manages Load balancer that is required for external access for the microservices.
+* Install AWS Load balancer controller. This manages Load balancers that are required for external access for the microservices.
 
 * Install cert manager, which is a kubernetes add-on to automate the management and issuance of TLS certificates from various issuing sources. It runs within your Kubernetes cluster and will ensure that certificates are valid and, attempt to renew certificates at an appropriate time before these expire.
 
@@ -238,9 +244,29 @@ Please refer to `code_samples/terraform/eks.tf` for code sample.
 * Create Kubernetes manifest files (YAML) for each microservice, defining the desired state of the application.
 * Define the following Kubernetes resources for each microservice:
   * Deployment: Describes how many replicas of the microservice should run. For high availability, deploy multiple replicas of microservices.
+  * Set the appropriate resource requests and limits to the deployment.
+  * Define proper pod disruption budget for the deployment.
+  * Add the `podAntiAffinity` to the pod spec, which enables the pods to schedule on to different nodes running in different Availability Zones
+  
+    ```bash
+    spec:
+    affinity:
+        podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+            podAffinityTerm:
+            labelSelector:
+                matchExpressions:
+                - key: <label-key>
+                operator: In
+                values:
+                - <label-value>
+            topologyKey: topology.kubernetes.io/zone
+    ```
+
   * Service: Exposes the microservice internally or externally.
   * ConfigMap/Secret: Manage configuration and sensitive data.
-  * Ingress: For external access and routing
+  * Ingress: For external access and routing.
 
 4.Namespaces:
 
@@ -284,7 +310,8 @@ Replicate the same setup in failover region.
 
 2.Provisioning and Deployment Testing:
 
-* Provisioning Tests: Ensure that provisioning scripts or tools (e.g., Terraform) create infrastructure components accurately. (Validation of the terraform plan/apply)
+* Provisioning Tests: Ensure Terraform create the infrastructure components accurately. Validation of the terraform plan/apply.
+
 * Deployment Tests: Validate that application deployments and updates do not negatively impact the infrastructure. (Comparing the difference of the existing resources with intended changes, take the help of CI tools)
 
 3.Performance Testing:
@@ -295,9 +322,8 @@ Replicate the same setup in failover region.
 
 4.Security Testing:
 
-* Vulnerability Scanning: Use tools to identify security vulnerabilities in the infrastructure and Kubernetes.
+* Vulnerability Scanning.
 * Penetration Testing: Attempt to exploit vulnerabilities to assess the infrastructure's resilience.
-* Compliance Testing: Ensure infrastructure configurations comply with security and regulatory standards.
 
 5.High Availability and Failover Testing:
 
@@ -309,23 +335,18 @@ Replicate the same setup in failover region.
 * Network Connectivity Testing: Check network configurations, security groups, and routing.
 * Latency and Bandwidth Testing: Measure network performance and capacity.
 
-7.Monitoring and Alerting Testing:
-
-* Use heartbeats to monitor critical components.
-
-8.Scaling and Auto-scaling Testing:
+7.Scaling and Auto-scaling Testing:
 
 * Auto-scaling Tests: Confirm that auto-scaling policies work as intended and doesn't hit the resource limits
 * Resource Scaling Tests: Evaluate the ability to manually scale resources when needed.
 
-9.Configuration Drift Monitoring
+8.Configuration Drift Monitoring
 
 * Configuration Drift Detection: Detect and rectify any configuration changes that deviate from the expected state.
 
-10.Disaster Preparedness Testing:
+9.Disaster Preparedness Testing:
 
 * Disaster Simulation: Conduct drills to prepare for real disasters, like AZ/region outages.
-
 
 ## Monitoring Approach
 
@@ -342,3 +363,10 @@ Replicate the same setup in failover region.
 * Visualize and Monitor:
   * Use Grafana to create dashboards that visualize the data collected by Prometheus. Monitor the health and performance of the Kubernetes cluster, applications, and services through these dashboards.
   * Configure alerting within Grafana to receive notifications when predefined alerting rules are triggered.
+
+## References
+* [AWS RDS](https://docs.aws.amazon.com/rds/)
+* [AWS VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)
+* [AWS EKS](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html)
+* [Operating a multi-regional stateless application using Amazon EKS](https://aws.amazon.com/blogs/containers/operating-a-multi-regional-stateless-application-using-amazon-eks/)
+* [Terraform AWS Modules ](https://github.com/terraform-aws-modules/)
