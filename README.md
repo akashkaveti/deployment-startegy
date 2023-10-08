@@ -341,7 +341,7 @@ Replicate the same setup in failover region.
 
 5.High Availability and Failover Testing:
 
-* Redundancy Testing: Verify that redundant components (EKS clusters and AWS global accelerator) function as expected.
+* Verify that redundant components (EKS clusters) function as expected.
 * Failover Testing: Simulate failures to check if failover mechanisms work correctly.
 
 6.Network Testing:
@@ -349,7 +349,7 @@ Replicate the same setup in failover region.
 * Network Connectivity Testing: Check network configurations, security groups, and routing.
 * Latency and Bandwidth Testing: Measure network performance and capacity.
 
-7.Scaling and Auto-scaling Testing:
+7.Scaling and Auto-scaling:
 
 * Auto-scaling Tests: Confirm that auto-scaling policies work as intended and doesn't hit the resource limits
 * Resource Scaling Tests: Evaluate the ability to manually scale resources when needed.
