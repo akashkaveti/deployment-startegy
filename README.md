@@ -240,9 +240,12 @@ Please refer to `code_samples/terraform/eks.tf` for code sample.
 * Follow the twelve-factor app  methodology for building the microservices.
 * Package each microservice and its dependencies into Docker containers.
 * Create a Dockerfile for each microservice to define its build process.
-* Make sure that microservices serve metrics at an endpoint, these metrics can be used to monitor the application. 
+* Make sure that microservices serve metrics at an endpoint, these metrics can be used to monitor the application.
+  
 2.Continuous Integration and Continuous Deployment (CI/CD):
+
 * Set up CI/CD pipelines to automate building and deploying Docker images to a container registry (e.g., Docker Hub, Google Container Registry).
+  
 3.Define Kubernetes Resources:
 
 * Create Kubernetes manifest files (YAML) for each microservice, defining the desired state of the application.
