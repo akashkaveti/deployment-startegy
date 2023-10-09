@@ -22,11 +22,11 @@
 
 * In a declarative system, you declare the desired state, and the system observes the current and desired state and determines the actions required to reach the desired state from the current state.
 
-* Kubernetes makes it easier for you to set up applications and let Kubernetes manage the system state. This allows you to use GitOps tools like Flux and ArgoCD that let you control multiple Kubernetes clusters using a single source of truth.
+* Kubernetes makes it easier to set up applications and let Kubernetes manage the system state. This allow to use GitOps tools like Flux and ArgoCD that control multiple Kubernetes clusters using a single source of truth.
 
-* These tools help you minimize configuration drift, an issue to which most concurrent deployments are vulnerable. It provides extended deployment and scaling capabilities, and automatically manages containerized applications.
+* These tools helps to minimize configuration drift, an issue to which most concurrent deployments are vulnerable. It provides extended deployment and scaling capabilities, and automatically manages containerized applications.
 
-* The Amazon EKS cluster provisioned per Region helps you to deploy and manage your containerized applications across Regions for High Availability (HA), Disaster Recovery (DR) and reduced latency.
+* The Amazon EKS cluster provisioned per Region helps to deploy and manage the containerized applications across Regions for High Availability (HA), Disaster Recovery (DR) and reduced latency.
 
 ## Infrastructure Automation
 
